@@ -1,0 +1,30 @@
+{
+  "name": "three-wire-parser",
+  "version": "0.1.0",
+  "description": "Parser for the Three-Wire UART Transport of the Bluetooth Core Specification",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bjorning/three-wire-parser.git"
+  },
+  "keywords": [
+    "uart",
+    "transport"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bjorning/three-wire-parser/issues"
+  },
+  "homepage": "https://github.com/bjorning/three-wire-parser#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "jest": "^21.2.1"
+  }
+}
