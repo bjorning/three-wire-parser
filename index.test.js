@@ -24,7 +24,7 @@ C1 04
 const result = parser.parse(input);
 
 describe('Valid input', () => {
-    test('Returns defined value', () => {
+    it('Returns defined value', () => {
         expect(result).toBeDefined();
     });
 
@@ -39,7 +39,6 @@ describe('Valid input', () => {
 
 describe('First slip packet of valid input', () => {
     it('Has an object with a length field of type number', () => {
-        console.log(result[0]);
         expect(result[0]).toHaveProperty('len');
     });
 });

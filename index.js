@@ -6,6 +6,18 @@ function parse(input) {
     }];
 }
 
+function parseThreeWirePacket(packet) {
+    
+}
+
+function parseHeader(packet) {
+
+}
+
+function calculateHeaderChecksum(headerBytes) {
+
+}
+
 module.exports = {
     parse,
 };
