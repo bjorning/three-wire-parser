@@ -37,7 +37,7 @@ function aggregateSlipPacket(inputByte, aggregateArray, callback) {
         }
     } else { // Not boundary char
         if (Array.isArray(aggregateArray)) {
-            if (aggregateArray[0] == 0xC0) {
+            if (aggregateArray[0] == SLIP_BOUNDARY_CHAR) {
                 callback(null, aggregateArray.concat(inputByte));
                 return;
             } else { // Not in a valid slip packet, discard pkt
@@ -55,10 +55,48 @@ function aggregateSlipPacket(inputByte, aggregateArray, callback) {
     return;
 }
 
-function decodeSlip(rawSlipPacket) {
-    
+// Callback (err, unescapedPacket)
+function unescapeSlip(rawSlipPacket, callback) {
+    // Buffer for building unescaped packet
+    let unescapedPacket = [];
+
+    if (typeof(callback) !== 'function') {
+        throw new Error('Callback function must be defined');
+    }
+
+    for (let i = 0; i < rawSlipPacket.length; i++) {
+        // Remove 0xC0 elements
+        if (rawSlipPacket[i] === 0xC0) {
+            continue;
+        }
+
+        // Check for special two-byte sequences
+        // Make sure there are at least two remaining elements in the packet
+        if ((i + 1) < rawSlipPacket.length) {
+            // replace DB DC with C0
+            if (rawSlipPacket[i] === 0xDB && rawSlipPacket[i+1] === 0xDC) {
+                unescapedPacket.push(0xC0);
+                // skip over next byte since we have checked it
+                i += 1;
+                continue;
+            }
+
+            // replace DB DD with DB
+            if (rawSlipPacket[i] === 0xDB && rawSlipPacket[i+1] === 0xDD) {
+                unescapedPacket.push(0xDB);
+                i += 1;
+                continue;
+            }
+        }
+
+        // Passed all special case checks, add as regular element
+        unescapedPacket.push(rawSlipPacket[i]);
+    }
+
+    callback(null, unescapedPacket);
 }
 
 module.exports = {
     aggregateSlipPacket,
+    unescapeSlip,
 }

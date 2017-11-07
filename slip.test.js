@@ -16,9 +16,15 @@ describe('isSame', () => {
         const array2 = [1,2,3,4,5];
         expect(isSame(array1, array2)).toBe(true);
     });
+
+    if('should return false for two arrays with unequal values', () => {
+        const array1 = [1,2,3,4,5];
+        const array2 = [1,2,3,4,5,6];
+        expect(isSame(array1, array2)).toBe(false);
+    });
 });
 
-describe('slip', () => {
+describe('slip aggregateSlipPacket', () => {
     it('should return undefined until complete packet received', () => {
         expect(slip.aggregateSlipPacket(0x0E, [], () => {}))
         .toBeUndefined();
@@ -43,7 +49,7 @@ describe('slip', () => {
             input,
             aggregateArr,
             (err, aggArr) => {
-                expect(isSame(aggArr, aggregateArr.concat(input)));
+                expect(isSame(aggArr, aggregateArr.concat(input))).toBe(true);
                 done();
             }
         )
@@ -58,10 +64,52 @@ describe('slip', () => {
             aggregateArr,
             (err, aggArr) => {
                 console.log(aggArr);
-                expect(isSame(aggArr, aggregateArr.concat(input)));
+                expect(isSame(aggArr, aggregateArr.concat(input))).toBe(true);
                 done();
             }
-        )
+        );
         expect(result).toBeUndefined();
-    })
+    });
+});
+
+describe('Slip unescapeSlip', () => {
+    it('should remove C0 elements', done => {
+        const input = [0xC0, 0x00, 0x05, 0x00, 0xFB, 0xC0];
+        const expected = [0x00, 0x05, 0x00, 0xFB];
+        slip.unescapeSlip(input, (err, unescapedPkt) => {
+            console.log(`Unescaped packet: ${unescapedPkt}`);
+            expect(isSame(unescapedPkt, expected)).toBe(true);
+            done();
+        });
+    });
+
+    it('should replace DB DC sequences', done => {
+        const input = [0xC0, 0x00, 0x05, 0xDB, 0xDC, 0x34, 0xC0];
+        const expected = [0x00, 0x05, 0xC0, 0x34];
+        slip.unescapeSlip(input, (err, unescapedPkt) => {
+            console.log(`Unescaped packet: ${unescapedPkt}`);
+            expect(isSame(unescapedPkt, expected)).toBe(true);
+            done();
+        });
+    });
+
+    it('should replace DB DD sequences', done => {
+        const input = [0xC0, 0x00, 0x05, 0xDB, 0xDD, 0x34, 0xC0];
+        const expected = [0x00, 0x05, 0xDB, 0x34];
+        slip.unescapeSlip(input, (err, unescapedPkt) => {
+            console.log(`Unescaped packet: ${unescapedPkt}`);
+            expect(isSame(unescapedPkt, expected)).toBe(true);
+            done();
+        });
+    });
+
+    it('should tolerate packets without 0xC0 at start/end', done => {
+        const input = [0x00, 0x05, 0xC0, 0x34, 0xDB, 0xDD];
+        const expected = [0x00, 0x05, 0x34, 0xDB];
+        slip.unescapeSlip(input, (err, unescapedPkt) => {
+            console.log(`Unescaped packet: ${unescapedPkt}`);
+            expect(isSame(unescapedPkt, expected)).toBe(true);
+            done();
+        });
+    });
 });
