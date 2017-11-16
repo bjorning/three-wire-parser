@@ -21,6 +21,11 @@ C0 00 3F
 C1 04
 7B 11 C0`;
 
+const inputPkt2 = `C0 DE 5E 03 C1 02 1D 00 FF FF 02 7D 6E 68 
+B5 FD E2 00 00 00 00 00 00 00 B4 06 1E 01 02 01 04 1A FF 59 
+00 02 15 01 12 23 34 45 56 67 78 89 9A AB BC CD DE EF F0 01 
+02 03 04 C3 80 13 C0`;
+
 const result = parser.parse(input);
 
 describe('Valid input', () => {

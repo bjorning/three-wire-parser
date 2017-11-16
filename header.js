@@ -41,14 +41,43 @@ class ThreeWireHeader {
         this._packetTypeName = this.parsePacketType(this._packetType);
                 
         const payloadLenLowByte = (this._pktBytes[1] >> 4) & 0xF;
-        const payloadLenHighByte = (this._pktBytes[2] << 8) & 0xFF00;
+        const payloadLenHighByte = (this._pktBytes[2] << 4) & 0xFF0;
         this._payloadLength = payloadLenLowByte + payloadLenHighByte;
 
         this._headerChecksum = this._pktBytes[3] & 0xFF;
+
+        this._validHeader = this.validateHeader();
+    }
+
+    static twosComplement(inputValue) {
+        const mask = Math.pow(2, 8 - 1);
+        return -(inputValue & mask) + (inputValue & ~mask);
+    }
+
+    // The twocomplement modulo 256 sum of all header bytes shall be 0
+    validateHeader() {
+        let sum = this._pktBytes[0] + this._pktBytes[1] + this._pktBytes[2] + this._pktBytes[3];
+        sum &= 0xFF;
+        sum = ThreeWireHeader.twosComplement(sum);
+        return sum === 0;
+    }
+
+    static headerChecksumCalculate(inputArr) {
+        let checksum = 0;
+    
+        checksum  = inputArr[0];
+        checksum += inputArr[1];
+        checksum += inputArr[2];
+        checksum &= 0xFF;
+        checksum  = ((~checksum >>> 0) + 1);
+    
+        return checksum & 0xFF;
     }
 
     parsePacketType(id) {
-        if (id === 1) {
+        if (id === 0) {
+            return 'Ack Packet';
+        } else if (id === 1) {
             return 'HCI Command Packet';
         } else if (id === 2) {
             return 'HCI ACL Data Packet';
@@ -126,6 +155,13 @@ class ThreeWireHeader {
     }
 
     /**
+     * @type {bool} Valid header integrity check
+     */
+    get validHeader() {
+        return this._validHeader;
+    }
+
+    /**
      * String representation of packet header
      * 
      * @return {string}
@@ -135,6 +171,7 @@ class ThreeWireHeader {
         str += `SeqNum:${this.sequenceNumber}, `;
         str += `AckNum:${this.ackNumber}, `;
         str += `IntChkPresent:${this.integrityCheckPresent}, `;
+        str += `ReliablePacket:${this.reliablePacket}, `;
         str += `PacketType:${this.packetTypeName.replace(/ /g, '')}, `;
         str += `PayloadLength:${this.payloadLength}, `;
         str += `HeaderChecksum:${this.headerChecksum}, `;
