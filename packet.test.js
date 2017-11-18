@@ -36,5 +36,5 @@ describe('ThreeWirePacket', () => {
         const crcLength = pkt.header.reliablePacket ? 2 : 0;
         const expPayload = validPkt1.slice(4, validPkt1.length - 4 + crcLength);
         expect(pkt.payload).toEqual(expPayload);
-    })
+    });
 });

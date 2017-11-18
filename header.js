@@ -1,7 +1,20 @@
+const PacketTypeEnum = {
+    ACK_PACKET: 0,
+    HCI_COMMAND_PACKET: 1,
+    HCI_ACL_DATA_PACKET: 2,
+    HCI_SYNCHRONOUS_DATA_PACKET: 3,
+    HCI_EVENT_PACKET: 4,
+    RESET_PACKET: 5,
+    RESERVED_START: 6,
+    RESERVED_END: 13,
+    VENDOR_SPECIFIC_PACKET: 14,
+    LINK_CONTROL_PACKET: 15,
+}
+
 /**
  * @class ThreeWireHeader
  *
- * Represents the header of a Three Wire UART Protocol packet header
+ * Represents the header of a Three Wire UART Protocol packet
  *
  * @example
  * import ThreeWireHeader from 'nrf-intel-hex';
@@ -10,7 +23,7 @@
  */
 class ThreeWireHeader {
     /**
-     * @param {Array} headerBytesArray The raw packet three wire uart header packet
+     * @param {Array} headerBytesArray The raw three wire uart header packet
      * contents.
      */
     constructor(headerBytesArray) {
@@ -18,6 +31,8 @@ class ThreeWireHeader {
 
         if (!headerBytesArray) {
             throw new Error('Invalid input, undefined');
+        } else if (!Array.isArray(headerBytesArray)) {
+            throw new Error('Invalid input, must be an array');
         } else if (headerBytesArray.length < 4) {
             throw new Error('Invalid input, length must be >= 4')
         }
@@ -75,26 +90,26 @@ class ThreeWireHeader {
     }
 
     parsePacketType(id) {
-        if (id === 0) {
+        if (id === PacketTypeEnum.ACK_PACKET) {
             return 'Ack Packet';
-        } else if (id === 1) {
+        } else if (id === PacketTypeEnum.HCI_COMMAND_PACKET) {
             return 'HCI Command Packet';
-        } else if (id === 2) {
+        } else if (id === PacketTypeEnum.HCI_ACL_DATA_PACKET) {
             return 'HCI ACL Data Packet';
-        } else if (id === 3) {
+        } else if (id === PacketTypeEnum.HCI_SYNCHRONOUS_DATA_PACKET) {
             return 'HCI Synchronous Data Packet';
-        } else if (id === 4) {
+        } else if (id === PacketTypeEnum.HCI_EVENT_PACKET) {
             return 'HCI Event Packet';
-        } else if (id === 5) {
+        } else if (id === PacketTypeEnum.RESET_PACKET) {
             return 'Reset'; // Proprietary type
-        } else if (id >= 6 && id <= 13) {
+        } else if (id >= PacketTypeEnum.RESERVED_START && id <= PacketTypeEnum.RESERVED_END) {
             return 'Reserved';
-        } else if (id === 14) {
+        } else if (id === PacketTypeEnum.VENDOR_SPECIFIC_PACKET) {
             return 'Vendor Specific Packet';
-        } else if (id === 15) {
+        } else if (id === PacketTypeEnum.LINK_CONTROL_PACKET) {
             return 'Link Control Packet';
         } else {
-            return 'Unknown';
+            return 'Unknown Packet Type';
         }
     }
 
