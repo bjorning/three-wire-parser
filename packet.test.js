@@ -12,7 +12,6 @@ describe('ThreeWirePacket', () => {
         const pkt = new ThreeWirePacket(validPkt1);
         expect(pkt).toBeDefined();
         expect(pkt.header).toBeDefined();
-        console.log(pkt.header.toString());
     });
 
     it('Throws error if packet is shorter than length field', () => {

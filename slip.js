@@ -2,6 +2,12 @@
 
 const SLIP_BOUNDARY_CHAR = 0xC0;
 
+/**
+ * 
+ * @param {integer} inputByte, must be between 0 and 255
+ * @param {array} aggregateArray, return value of previous call to function
+ * @param {function} callback, (err, aggregateArray)
+ */
 function aggregateSlipPacket(inputByte, aggregateArray, callback) {
     // Check callback
     if (!typeof(callback) == 'function') {

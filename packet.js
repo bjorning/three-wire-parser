@@ -60,6 +60,12 @@ class ThreeWirePacket {
     get payload() {
         return this._payloadBytesArray;
     }
+
+    toString() {
+        let str = '';
+        str += this._header.toString();
+        return str;
+    }
 }
 
 module.exports = ThreeWirePacket;
