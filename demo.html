@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Three Wire Parser</title>
+
+</head>
+<body>
+    <h1>Three Wire Parser</h1>
+    <script src="bundle.js"></script>
+<script>
+
+const parser = new ThreeWireParser();
+
+document.write('<textarea id=data cols=100 rows=15>C0 00 2F 00 D1 01 7E C0</textarea>');
+document.write('<input type=button id=parse value=parse />')
+document.write('<div id=parsedOutput></div>');
+
+const clickHandler = () => {
+    const tArea = document.getElementById('data');
+    const text = tArea.value;
+    let parsedText = '';
+    const packets = parser.parseData(text);
+    packets.map(value => {
+        parsedText += `<div>${value.toString()}</div>`;
+    });
+    const contentDiv = document.getElementById('parsedOutput');
+    contentDiv.innerHTML = parsedText;
+}
+
+const btn = document.getElementById('parse');
+btn.addEventListener('click', clickHandler);
+console.log(btn);
+
+</script>
+</body>
+</html>

@@ -7,15 +7,18 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "jest --verbose"
+    "test": "jest --verbose",
+    "dev": "webpack --watch",
+    "webpack": "webpack"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bjorning/three-wire-parser.git"
   },
   "keywords": [
-    "uart",
-    "transport"
+    "three wire uart",
+    "slip",
+    "parser"
   ],
   "author": "",
   "license": "MIT",
