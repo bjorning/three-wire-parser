@@ -185,11 +185,11 @@ class ThreeWireHeader {
         let str = '';
         str += `SeqNum:${this.sequenceNumber}, `;
         str += `AckNum:${this.ackNumber}, `;
-        str += `IntChkPresent:${this.integrityCheckPresent}, `;
-        str += `ReliablePacket:${this.reliablePacket}, `;
-        str += `PacketType:${this.packetTypeName.replace(/ /g, '')}, `;
-        str += `PayloadLength:${this.payloadLength}, `;
-        str += `HeaderChecksum:${this.headerChecksum}, `;
+        str += `IntChk:${this.integrityCheckPresent ? 'Yes' : 'No'}, `;
+        str += `Reliable:${this.reliablePacket ? 'Yes' : 'No'}, `;
+        str += `Type:${this.packetTypeName.replace(/ /g, '')}, `;
+        str += `Length:${this.payloadLength}, `;
+        str += `Checksum:${this.headerChecksum}, `;
         return str;
     }
 }
