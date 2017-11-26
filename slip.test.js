@@ -1,6 +1,6 @@
 'use strict';
 
-const slip = require('./slip');
+const Slip = require('./slip');
 
 function isSame(arrayA, arrayB) {
     if (arrayA.length != arrayB.length) return false;
@@ -25,86 +25,49 @@ describe('isSame', () => {
 });
 
 describe('slip aggregateSlipPacket', () => {
-    it('should return undefined until complete packet received', () => {
-        expect(slip.aggregateSlipPacket(0x0E, [], () => {}))
-        .toBeUndefined();
+    it('should yield empty array until complete packet received', () => {
+        const slip = new Slip([0x0E]);
+        expect(slip.encodedPackets).toEqual([]);
     });
 
-    it('should return complete packet when c0 found and aggregate exists', () => {
-        const input = 0xC0;
-        const aggregateArr = [0xC0, 0x00, 0x05, 0x00, 0xFB];
-        const result = slip.aggregateSlipPacket(
-            input, 
-            aggregateArr,
-            () => {});
-        expect(result).toBeDefined();
-        const concatArr = aggregateArr.concat(input);
-        expect(isSame(result, concatArr)).toBe(true);
+    it('should yield complete packet when complete packet input', () => {
+        const input = [0xC0, 0x00, 0x05, 0x00, 0xFB, 0xC0];
+        const slip = new Slip(input);
+        expect(slip.encodedPackets).toEqual([input,]);
+        expect(slip.decodedPackets).toEqual([[0x00, 0x05, 0x00, 0xFB]]);
     });
 
-    it('should callback aggregate arr with inputbyte concat', done => {
-        const input = 0xAA;
-        const aggregateArr = [0xC0, 0x00, 0x05, 0x00, 0xFB];
-        const result = slip.aggregateSlipPacket(
-            input,
-            aggregateArr,
-            (err, aggArr) => {
-                expect(isSame(aggArr, aggregateArr.concat(input))).toBe(true);
-                done();
-            }
-        )
-        expect(result).toBeUndefined();
+    it('should yield only packet bytes within C0', () => {
+        const pkt = [0xC0, 0x00, 0x05, 0x00, 0xFB, 0xC0];
+        const input = [0xA, 0xB].concat(pkt).concat([0xC, 0xD]);
+        const slip = new Slip(input);
+        expect(slip.encodedPackets).toEqual([pkt,]);
+        expect(slip.decodedPackets).toEqual([[0x00, 0x05, 0x00, 0xFB]]);
     });
 
-    it('should callback aggregate arr also when aggarr.len < 2', done => {
-        const input = 0xAA;
-        const aggregateArr = [0xC0];
-        const result = slip.aggregateSlipPacket(
-            input,
-            aggregateArr,
-            (err, aggArr) => {
-                expect(isSame(aggArr, aggregateArr.concat(input))).toBe(true);
-                done();
-            }
-        );
-        expect(result).toBeUndefined();
+    it('should parse multiple packets if present', () => {
+        const pkt = [0xC0, 0x00, 0x05, 0xC0];
+        const input = [].concat(pkt).concat(pkt);
+        const slip = new Slip(input);
+        expect(slip.encodedPackets).toEqual([pkt, pkt]);
+        expect(slip.decodedPackets).toEqual([[0x00, 0x05], [0x00, 0x05]]);
     });
 });
 
 describe('Slip unescapeSlip', () => {
-    it('should remove C0 elements', done => {
-        const input = [0xC0, 0x00, 0x05, 0x00, 0xFB, 0xC0];
-        const expected = [0x00, 0x05, 0x00, 0xFB];
-        slip.unescapeSlip(input, (err, unescapedPkt) => {
-            expect(isSame(unescapedPkt, expected)).toBe(true);
-            done();
-        });
-    });
-
-    it('should replace DB DC sequences', done => {
+    it('should replace DB DC sequences', () => {
         const input = [0xC0, 0x00, 0x05, 0xDB, 0xDC, 0x34, 0xC0];
         const expected = [0x00, 0x05, 0xC0, 0x34];
-        slip.unescapeSlip(input, (err, unescapedPkt) => {
-            expect(isSame(unescapedPkt, expected)).toBe(true);
-            done();
-        });
+        const slip = new Slip(input);
+        expect(slip.encodedPackets).toEqual([input]);
+        expect(slip.decodedPackets).toEqual([expected]);
     });
 
-    it('should replace DB DD sequences', done => {
+    it('should replace DB DD sequences', () => {
         const input = [0xC0, 0x00, 0x05, 0xDB, 0xDD, 0x34, 0xC0];
         const expected = [0x00, 0x05, 0xDB, 0x34];
-        slip.unescapeSlip(input, (err, unescapedPkt) => {
-            expect(isSame(unescapedPkt, expected)).toBe(true);
-            done();
-        });
-    });
-
-    it('should tolerate packets without 0xC0 at start/end', done => {
-        const input = [0x00, 0x05, 0xC0, 0x34, 0xDB, 0xDD];
-        const expected = [0x00, 0x05, 0x34, 0xDB];
-        slip.unescapeSlip(input, (err, unescapedPkt) => {
-            expect(isSame(unescapedPkt, expected)).toBe(true);
-            done();
-        });
+        const slip = new Slip(input);
+        expect(slip.encodedPackets).toEqual([input]);
+        expect(slip.decodedPackets).toEqual([expected]);
     });
 });

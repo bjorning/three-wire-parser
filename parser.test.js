@@ -32,6 +32,9 @@ describe('ThreeWireParser', () => {
         const parser = new ThreeWireParser();
         const packets = parser.parseData(input);
         expect(packets).toBeDefined();
+        //for (let i = 0; i < packets.length; i++) {
+        //    console.log(packets[i].toString());
+        //}
     });
 
     it('Parses valid threewire slip packet byte array', () => {

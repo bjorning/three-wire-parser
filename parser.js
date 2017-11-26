@@ -1,4 +1,4 @@
-const slip = require('./slip');
+const Slip = require('./slip');
 const ThreeWirePacket = require('./packet');
 
 /**
@@ -19,36 +19,13 @@ class ThreeWireParser {
             throw new Error('Invalid input, must be string or array');
         }
 
-        //console.log(this._pktBytesArray);
-
-        const slipPackets = [];
-
         // Feed data to slip, get slip packets
-        let aggreateSlipArray = [];
-        for (let i = 0; i < this._pktBytesArray.length; i++) {
-            const singleSlipPkt = slip.aggregateSlipPacket(this._pktBytesArray[i], aggreateSlipArray, (err, newAggregate) => {
-                aggreateSlipArray = newAggregate;
-            });
-            if (singleSlipPkt) {
-                slipPackets.push(singleSlipPkt);
-            }
-        }
-
-        // Unescape slip packets
-        const unescapedPackets = [];
-        slipPackets.map(pkt => {
-            slip.unescapeSlip(pkt, (err, unescPkt) => {
-                if (err) throw new Error(`Slip unescape failed: ${err}`);
-                unescapedPackets.push(unescPkt);
-            });
-        })
-
-        //console.log(unescapedPackets);
+        const slip = new Slip(this._pktBytesArray);
 
         const parsedPackets = [];
         // Feed the unescaped data to ThreeWirePacket
-        for (let j = 0; j < unescapedPackets.length; j++) {
-            const pkt = new ThreeWirePacket(unescapedPackets[j]);
+        for (let i = 0; i < slip.decodedPackets.length; i++) {
+            const pkt = new ThreeWirePacket(slip.decodedPackets[i]);
             parsedPackets.push(pkt);
         }
 
