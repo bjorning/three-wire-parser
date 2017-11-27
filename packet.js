@@ -45,6 +45,19 @@ class ThreeWirePacket {
 
         const payloadEnd = payloadStart + this._header.payloadLength;
         this._payloadBytesArray = this._pktBytes.slice(payloadStart, payloadEnd);
+
+        switch (this._header.packetType) {
+            case this._header.packetTypeEnum.ACI_PACKET:
+            case this._header.packetTypeEnum.HCI_COMMAND_PACKET:
+            case this._header.packetTypeEnum.HCI_ACL_DATA_PACKET:
+            case this._header.packetTypeEnum.HCI_SYNCHRONOUS_DATA_PACKET:
+            case this._header.packetTypeEnum.HCI_EVENT_PACKET:
+            case this._header.packetTypeEnum.RESET_PACKET:
+            case this._header.packetTypeEnum.VENDOR_SPECIFIC_PACKET:
+            case this._header.packetTypeEnum.LINK_CONTROL_PACKET:
+                break;
+
+        }
     }
 
     /**

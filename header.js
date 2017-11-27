@@ -114,6 +114,13 @@ class ThreeWireHeader {
     }
 
     /**
+     * @type {object} Packet type enum
+     */
+    get packetTypeEnum() {
+        return PacketTypeEnum;
+    }
+
+    /**
      * @type {number} Sequence number
      */
     get sequenceNumber() {
@@ -189,7 +196,7 @@ class ThreeWireHeader {
         str += `Reliable:${this.reliablePacket ? 'Yes' : 'No'}, `;
         str += `Type:${this.packetTypeName.replace(/ /g, '')}, `;
         str += `Length:${this.payloadLength}, `;
-        str += `Checksum:${this.headerChecksum}, `;
+        str += `Checksum:${this.headerChecksum} `;
         return str;
     }
 }
