@@ -3,35 +3,39 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Inconsolata' rel='stylesheet'>
     <title>Three Wire Parser</title>
 
 </head>
-<body>
+<body style='font-family:inconsolata;font-size:12px'>
     <h1>Three Wire Parser</h1>
     <script src="bundle.js"></script>
+    <textarea id=data cols=100 rows=15 
+        style='font-family:inconsolata'>C0 00 2F 00 D1 01 7E C0</textarea>
+    <input type=button id=parse value=parse onclick='clickHandler()'/>
+    <div style='white-space:nowrap' id=parsedOutput></div>
+
 <script>
-
 const parser = new ThreeWireParser();
-
-document.write('<textarea id=data cols=100 rows=15>C0 00 2F 00 D1 01 7E C0</textarea>');
-document.write('<input type=button id=parse value=parse />')
-document.write('<div id=parsedOutput></div>');
 
 const clickHandler = () => {
     const tArea = document.getElementById('data');
-    const text = tArea.value;
-    let parsedText = '';
-    const packets = parser.parseData(text);
-    packets.map(value => {
-        parsedText += `<div>${value.toString()}</div>`;
-    });
-    const contentDiv = document.getElementById('parsedOutput');
-    contentDiv.innerHTML = parsedText;
-}
+    const packets = parser.parseData(tArea.value);
+    const replacer = (key, value) => {
+        if (key.indexOf('Byte') !== -1) {
+            return undefined;
+        }
+        return value;
+    }
+    let count = 0;
+    const parsedText = packets.reduce((acc, value) => {
+        count++;
+        return acc += `<div>${i}: ${JSON.stringify(value, replacer, 0)}</div>`;
+    }, '');
 
-const btn = document.getElementById('parse');
-btn.addEventListener('click', clickHandler);
-console.log(btn);
+    const contentDiv = document.getElementById('parsedOutput');
+    contentDiv.innerHTML = parsedText.replace(/_/g, '');
+}
 
 </script>
 </body>

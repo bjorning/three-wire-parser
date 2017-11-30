@@ -1,4 +1,5 @@
 const ThreeWireHeader = require('./header');
+const LinkControlPacket = require('./packetTypes/linkControlPacket');
 
 const HEADER_LENGTH = 4;
 
@@ -54,7 +55,10 @@ class ThreeWirePacket {
             case this._header.packetTypeEnum.HCI_EVENT_PACKET:
             case this._header.packetTypeEnum.RESET_PACKET:
             case this._header.packetTypeEnum.VENDOR_SPECIFIC_PACKET:
+                break;
             case this._header.packetTypeEnum.LINK_CONTROL_PACKET:
+                const linkCtrlPkt = new LinkControlPacket(this._payloadBytesArray);
+                this._parsedPayload = linkCtrlPkt.parsedPacket;
                 break;
 
         }
@@ -74,9 +78,17 @@ class ThreeWirePacket {
         return this._payloadBytesArray;
     }
 
+    /**
+     * @type {string} Parsed payload as string
+     */
+    get parsedPayload() {
+        return this._parsedPayload;
+    }
+
     toString() {
         let str = '';
         str += this._header.toString();
+        str += `, payload: ${this.parsedPayload}`;
         return str;
     }
 }

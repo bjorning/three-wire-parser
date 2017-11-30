@@ -28,26 +28,37 @@ class LinkControlPacket {
         } else if (packetDataArray[0] === 0x04 && packetDataArray[1] === 0x7B) {
             return this.parseConfigResponseMessage(packetDataArray.slice(2));
         } else {
-            throw new Error('Invalid input, unrecognized link control packet data');
+            throw new Error(`Invalid input, unrecognized link control packet data 
+            ${packetDataArray}`);
         }
     }
 
     parseSyncMessage() {
-        return 'SyncMessage';
+        return {
+            type: 'SyncMessage',
+        }
     }
 
     parseSyncResponseMessage() {
-        return 'SyncResponseMessage';
+        return {
+            type: 'SyncResponseMessage',
+        }
     }
 
     parseConfigMessage(configData) {
         const configField = this.parseConfigField(configData);
-        return `ConfigMessage: ${configField}`;
+        return {
+            type: 'ConfigMessage',
+            configField: configField,
+        }
     }
 
     parseConfigResponseMessage(configData) {
-        const configField = this.parseConfigField(packetDataArray.slice(2));
-        return `ConfigResponseMessage: ${configField}`;
+        const configField = this.parseConfigField(configData);
+        return {
+            type: 'ConfigResponseMessage',
+            configField: configField,
+        }
     }
 
     parseConfigField(configData) {
@@ -56,10 +67,12 @@ class LinkControlPacket {
         const dataIntegrityCheckType = (configData >>> 4) & 0x01;
         const versionNumber = (configData >>> 5) & 0x03;
 
-        return `slidingWindowSize:${slidingWindowSize}, \
-        odfFlowControl:${odfFlowControl}, \
-        checkType:${dataIntegrityCheckType}, \
-        versionNumber:${versionNumber}`;
+        return {
+            slidingWindowSize,
+            odfFlowControl,
+            dataIntegrityCheckType,
+            versionNumber,
+        }
     }
 }
 

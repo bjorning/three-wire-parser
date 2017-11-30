@@ -196,7 +196,7 @@ class ThreeWireHeader {
         str += `Reliable:${this.reliablePacket ? 'Yes' : 'No'}, `;
         str += `Type:${this.packetTypeName.replace(/ /g, '')}, `;
         str += `Length:${this.payloadLength}, `;
-        str += `Checksum:${this.headerChecksum} `;
+        str += `Checksum:${this.headerChecksum}`;
         return str;
     }
 }

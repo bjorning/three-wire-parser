@@ -62,7 +62,6 @@ describe('Three wire constructor', () => {
     it('Return string repr with toString', () => {
         const header = new ThreeWireHeader(input);
         const txt = header.toString();
-        console.log(txt);
         expect(txt.length).toBeGreaterThan(0);
     });
 
@@ -78,7 +77,6 @@ describe('Three wire constructor', () => {
         expect(header.headerChecksum).toBe(193);
         expect(header.validHeader).toBe(true);
         const txt = header.toString();
-        console.log(txt);
     });
 
     it('Calculates header checksum correctly', () => {
