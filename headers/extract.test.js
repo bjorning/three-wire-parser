@@ -79,4 +79,10 @@ describe('extract', () => {
         //console.log(svcsEvts[0][1]);
         //console.log(svcsEvts[1]);
     });
+
+    it.only('merges all constant string to one string', async () => {
+        const svcsEvts = await extract.processHeaders();
+        const mergedStr = await extract.mergeConstants(svcsEvts);
+        console.log(mergedStr);
+    })
 });

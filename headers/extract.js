@@ -21,13 +21,16 @@ class SDConstExtractor {
     }
 
     async processHeaders() {
-        const svcsEvts = await Promise.all(this.headerFiles.map(async value => {
+        const headersSvcsEvts = await Promise.all(this.headerFiles.map(async value => {
             const fileString = await this.getFileAsString(`headers/${value[0]}`);
             const svcs = await this.extractSvcsConstants(fileString, value[1]);
+            const formattedSvcs = await this.reformatCtoJSConsts(svcs);
             const evts = await this.extractEvtsConstants(fileString, value[1]);
-            return [svcs, evts];
+            const formattedEvts = await this.reformatCtoJSConsts(evts);
+            return [formattedSvcs, formattedEvts];
         }));
-        return svcsEvts;
+
+        return headersSvcsEvts;
     }
 
     async getFileAsString(pth) {
@@ -51,6 +54,26 @@ class SDConstExtractor {
         const matchEvts = data.match(regexEvts);
         const evts = matchEvts[1];
         return evts;
+    }
+
+    async reformatCtoJSConsts(cEnum) {
+        const match = cEnum.match(/\w+\s+=\s+(\w+),?/);
+        let reformatted = cEnum;
+        reformatted = reformatted
+            .replace(/(\w+)\s+=\s+(\w+),?/, '$1,')
+            .replace(/(\w+_\w+)\s\s{/, 'const $1 = {')
+            .replace(/}/, '};');
+        //console.log(reformatted);
+        return reformatted;
+    }
+
+    async mergeConstants(headersSvcsEvts) {
+        const mergedStr = await headersSvcsEvts.reduce(async (accP, value) => {
+            //console.log(value);
+            const acc = await accP;
+            return acc + `${value[0]}\n${value[1]}\n`;
+        }, '');
+        return mergedStr;
     }
 }
 
