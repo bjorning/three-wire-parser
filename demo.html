@@ -30,7 +30,7 @@ const clickHandler = () => {
     let count = 0;
     const parsedText = packets.reduce((acc, value) => {
         count++;
-        return acc += `<div>${i}: ${JSON.stringify(value, replacer, 0)}</div>`;
+        return acc += `<div>${count}: ${JSON.stringify(value, replacer, 0)}</div>`;
     }, '');
 
     const contentDiv = document.getElementById('parsedOutput');
