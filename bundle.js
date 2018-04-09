@@ -6,9 +6,9 @@
 /******/ 	function __webpack_require__(moduleId) {
 /******/
 /******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId]) {
+/******/ 		if(installedModules[moduleId])
 /******/ 			return installedModules[moduleId].exports;
-/******/ 		}
+/******/
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = installedModules[moduleId] = {
 /******/ 			i: moduleId,
@@ -32,6 +32,9 @@
 /******/
 /******/ 	// expose the module cache
 /******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// identity function for calling harmony imports with the correct context
+/******/ 	__webpack_require__.i = function(value) { return value; };
 /******/
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
@@ -60,24 +63,15 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = 5);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const ThreeWireParser = __webpack_require__(1);
-
-window.ThreeWireParser = ThreeWireParser;
-
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-const Slip = __webpack_require__(2);
-const ThreeWirePacket = __webpack_require__(3);
+const Slip = __webpack_require__(4);
+const ThreeWirePacket = __webpack_require__(2);
 
 /**
  * @class ThreeWireParser
@@ -133,254 +127,7 @@ class ThreeWireParser {
 module.exports = ThreeWireParser;
 
 /***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-const SLIP_BOUNDARY_CHAR = 0xC0;
-
-class Slip {
-    /**
-     * @param {Array} slipBytesArray Raw slip encoded bytes
-     */
-    constructor(slipBytesArray) {
-        this._pktBytes = slipBytesArray;
-
-        if (!this._pktBytes) {
-            throw new Error('Invalid input, undefined');
-        }
-
-        this._escapedPackets = Slip.extractSlipPackets(this._pktBytes);
-        this._unescapedPackets = Slip.unescapePackets(this._escapedPackets);        
-    }
-
-    /**
-     * @type {Array} Slip encoded packets
-     */
-    get encodedPackets() {
-        return this._escapedPackets || [];
-    }
-
-    /**
-     * @type {Array} Decoded packets
-     */
-    get decodedPackets() {
-        return this._unescapedPackets || [];
-    }
-
-    /**
-     * @param {Array} slipBytesArray The raw slip encoded packet
-     */
-    static extractSlipPackets(slipBytesArray) {
-        if (!Array.isArray(slipBytesArray)) {
-            throw new Error('Invalid input, must be array');
-        };
-
-        const packets = [];
-        let aggregateArray = [];
-        let inputByte;
-
-        for (let i = 0; i < slipBytesArray.length; i++) {
-            inputByte = slipBytesArray[i];
-            
-            // Check type
-            if (!Number.isInteger(inputByte)) {
-                throw new Error('inputByte must be an integer');
-            }
-
-            // Check valid range
-            if (inputByte < 0 || inputByte > 255) {
-                throw new Error('inputByte must be between 0 and 255');
-            }
-
-            // Input is slip start or end
-            if (inputByte == SLIP_BOUNDARY_CHAR) {
-                // End of packet
-                if (aggregateArray.length >= 2) {
-                    aggregateArray.push(inputByte);
-                    packets.push(aggregateArray.slice());
-                    aggregateArray = [];
-                    continue;
-                } else {
-                    // New packet
-                    aggregateArray = [inputByte];
-                    continue;
-                }
-            } else { // Not boundary char
-                if (aggregateArray[0] == SLIP_BOUNDARY_CHAR) {
-                    aggregateArray.push(inputByte);
-                    continue;
-                } else { // Not in a valid slip packet, discard pkt
-                    aggregateArray = [];
-                    continue;
-                }
-            }
-        }
-
-        return packets;
-    }
-
-    static unescapePackets(slipPackets) {
-        if (!slipPackets) {
-            return [];
-        }
-
-        const pkts = slipPackets.reduce((acc, packet) => {
-            acc.push(Slip.unescapeSlip(packet));
-            return acc;
-        }, []); // Initial reduce value
-        return pkts;  
-    }
-
-    // Callback (err, unescapedPacket)
-    static unescapeSlip(rawSlipPacket) {
-        if (!Array.isArray(rawSlipPacket)) {
-            throw new Error('Invalid input, must be array');
-        }
-
-        // Buffer for building unescaped packet
-        let unescapedPacket = [];
-
-        for (let i = 0; i < rawSlipPacket.length; i++) {
-            // Remove 0xC0 elements
-            if (rawSlipPacket[i] === 0xC0) {
-                continue;
-            }
-
-            // Check for special two-byte sequences
-            // Make sure there are at least two remaining elements in the packet
-            if ((i + 1) < rawSlipPacket.length) {
-                // replace DB DC with C0
-                if (rawSlipPacket[i] === 0xDB && rawSlipPacket[i+1] === 0xDC) {
-                    unescapedPacket.push(0xC0);
-                    // skip over next byte since we have checked it
-                    i += 1;
-                    continue;
-                }
-
-                // replace DB DD with DB
-                if (rawSlipPacket[i] === 0xDB && rawSlipPacket[i+1] === 0xDD) {
-                    unescapedPacket.push(0xDB);
-                    i += 1;
-                    continue;
-                }
-            }
-
-            // Passed all special case checks, add as regular element
-            unescapedPacket.push(rawSlipPacket[i]);
-        }
-
-        return unescapedPacket;
-    }
-}
-
-module.exports = Slip;
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-const ThreeWireHeader = __webpack_require__(4);
-const LinkControlPacket = __webpack_require__(5);
-
-const HEADER_LENGTH = 4;
-
-/**
- * @class ThreeWirePacket
- * 
- * Represents a complete Three Wire UART Protocol packet
- * 
- * @example
- * import packet1 = new ThreeWirePacket(packetBytesArray);
- */
-class ThreeWirePacket {
-    /**
-     * @param {Array} packetBytesArray The raw packet
-     */
-    constructor(packetBytesArray) {
-        this._pktBytes = packetBytesArray;
-
-        if (!packetBytesArray) {
-            throw new Error('Invalid input, undefined');
-        } else if (packetBytesArray.length < HEADER_LENGTH) {
-            throw new Error(`Invalid input, length must be >= ${HEADER_LENGTH}`);
-        }
-
-        this.parseHeader();
-        this.parsePayload();
-        //this.parseCRC();
-    }
-
-    parseHeader() {
-        this._header = new ThreeWireHeader(this._pktBytes);
-        
-        if (!this._header) {
-            throw new Error('Invalid header, could not parse');
-        }
-    }
-
-    parsePayload() {
-        const payloadStart = HEADER_LENGTH;
-
-        if ((this._pktBytes.length - HEADER_LENGTH) < this._header.payloadLength) {
-            throw new Error('Invalid length, payload array shorter than header payload length');
-        }
-
-        const payloadEnd = payloadStart + this._header.payloadLength;
-        this._payloadBytesArray = this._pktBytes.slice(payloadStart, payloadEnd);
-
-        switch (this._header.packetType) {
-            case this._header.packetTypeEnum.ACI_PACKET:
-            case this._header.packetTypeEnum.HCI_COMMAND_PACKET:
-            case this._header.packetTypeEnum.HCI_ACL_DATA_PACKET:
-            case this._header.packetTypeEnum.HCI_SYNCHRONOUS_DATA_PACKET:
-            case this._header.packetTypeEnum.HCI_EVENT_PACKET:
-            case this._header.packetTypeEnum.RESET_PACKET:
-            case this._header.packetTypeEnum.VENDOR_SPECIFIC_PACKET:
-                break;
-            case this._header.packetTypeEnum.LINK_CONTROL_PACKET:
-                const linkCtrlPkt = new LinkControlPacket(this._payloadBytesArray);
-                this._parsedPayload = linkCtrlPkt.parsedPacket;
-                break;
-
-        }
-    }
-
-    /**
-     * @type {ThreeWireHeader} Packet header
-     */
-    get header() {
-        return this._header;
-    }
-
-    /**
-     * @type {object} Packet payload
-     */
-    get payload() {
-        return this._payloadBytesArray;
-    }
-
-    /**
-     * @type {string} Parsed payload as string
-     */
-    get parsedPayload() {
-        return this._parsedPayload;
-    }
-
-    toString() {
-        let str = '';
-        str += this._header.toString();
-        str += `, payload: ${this.parsedPayload}`;
-        return str;
-    }
-}
-
-module.exports = ThreeWirePacket;
-
-/***/ }),
-/* 4 */
+/* 1 */
 /***/ (function(module, exports) {
 
 const PacketTypeEnum = {
@@ -589,7 +336,108 @@ class ThreeWireHeader {
 module.exports = ThreeWireHeader;
 
 /***/ }),
-/* 5 */
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+const ThreeWireHeader = __webpack_require__(1);
+const LinkControlPacket = __webpack_require__(3);
+
+const HEADER_LENGTH = 4;
+
+/**
+ * @class ThreeWirePacket
+ * 
+ * Represents a complete Three Wire UART Protocol packet
+ * 
+ * @example
+ * import packet1 = new ThreeWirePacket(packetBytesArray);
+ */
+class ThreeWirePacket {
+    /**
+     * @param {Array} packetBytesArray The raw packet
+     */
+    constructor(packetBytesArray) {
+        this._pktBytes = packetBytesArray;
+
+        if (!packetBytesArray) {
+            throw new Error('Invalid input, undefined');
+        } else if (packetBytesArray.length < HEADER_LENGTH) {
+            throw new Error(`Invalid input, length must be >= ${HEADER_LENGTH}`);
+        }
+
+        this.parseHeader();
+        this.parsePayload();
+        //this.parseCRC();
+    }
+
+    parseHeader() {
+        this._header = new ThreeWireHeader(this._pktBytes);
+        
+        if (!this._header) {
+            throw new Error('Invalid header, could not parse');
+        }
+    }
+
+    parsePayload() {
+        const payloadStart = HEADER_LENGTH;
+
+        if ((this._pktBytes.length - HEADER_LENGTH) < this._header.payloadLength) {
+            throw new Error('Invalid length, payload array shorter than header payload length');
+        }
+
+        const payloadEnd = payloadStart + this._header.payloadLength;
+        this._payloadBytesArray = this._pktBytes.slice(payloadStart, payloadEnd);
+
+        switch (this._header.packetType) {
+            case this._header.packetTypeEnum.ACI_PACKET:
+            case this._header.packetTypeEnum.HCI_COMMAND_PACKET:
+            case this._header.packetTypeEnum.HCI_ACL_DATA_PACKET:
+            case this._header.packetTypeEnum.HCI_SYNCHRONOUS_DATA_PACKET:
+            case this._header.packetTypeEnum.HCI_EVENT_PACKET:
+            case this._header.packetTypeEnum.RESET_PACKET:
+            case this._header.packetTypeEnum.VENDOR_SPECIFIC_PACKET:
+                break;
+            case this._header.packetTypeEnum.LINK_CONTROL_PACKET:
+                const linkCtrlPkt = new LinkControlPacket(this._payloadBytesArray);
+                this._parsedPayload = linkCtrlPkt.parsedPacket;
+                break;
+
+        }
+    }
+
+    /**
+     * @type {ThreeWireHeader} Packet header
+     */
+    get header() {
+        return this._header;
+    }
+
+    /**
+     * @type {object} Packet payload
+     */
+    get payload() {
+        return this._payloadBytesArray;
+    }
+
+    /**
+     * @type {string} Parsed payload as string
+     */
+    get parsedPayload() {
+        return this._parsedPayload;
+    }
+
+    toString() {
+        let str = '';
+        str += this._header.toString();
+        str += `, payload: ${this.parsedPayload}`;
+        return str;
+    }
+}
+
+module.exports = ThreeWirePacket;
+
+/***/ }),
+/* 3 */
 /***/ (function(module, exports) {
 
 class LinkControlPacket {
@@ -671,6 +519,161 @@ class LinkControlPacket {
 }
 
 module.exports = LinkControlPacket;
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+const SLIP_BOUNDARY_CHAR = 0xC0;
+
+class Slip {
+    /**
+     * @param {Array} slipBytesArray Raw slip encoded bytes
+     */
+    constructor(slipBytesArray) {
+        this._pktBytes = slipBytesArray;
+
+        if (!this._pktBytes) {
+            throw new Error('Invalid input, undefined');
+        }
+
+        this._escapedPackets = Slip.extractSlipPackets(this._pktBytes);
+        this._unescapedPackets = Slip.unescapePackets(this._escapedPackets);        
+    }
+
+    /**
+     * @type {Array} Slip encoded packets
+     */
+    get encodedPackets() {
+        return this._escapedPackets || [];
+    }
+
+    /**
+     * @type {Array} Decoded packets
+     */
+    get decodedPackets() {
+        return this._unescapedPackets || [];
+    }
+
+    /**
+     * @param {Array} slipBytesArray The raw slip encoded packet
+     */
+    static extractSlipPackets(slipBytesArray) {
+        if (!Array.isArray(slipBytesArray)) {
+            throw new Error('Invalid input, must be array');
+        };
+
+        const packets = [];
+        let aggregateArray = [];
+        let inputByte;
+
+        for (let i = 0; i < slipBytesArray.length; i++) {
+            inputByte = slipBytesArray[i];
+            
+            // Check type
+            if (!Number.isInteger(inputByte)) {
+                throw new Error('inputByte must be an integer');
+            }
+
+            // Check valid range
+            if (inputByte < 0 || inputByte > 255) {
+                throw new Error('inputByte must be between 0 and 255');
+            }
+
+            // Input is slip start or end
+            if (inputByte == SLIP_BOUNDARY_CHAR) {
+                // End of packet
+                if (aggregateArray.length >= 2) {
+                    aggregateArray.push(inputByte);
+                    packets.push(aggregateArray.slice());
+                    aggregateArray = [];
+                    continue;
+                } else {
+                    // New packet
+                    aggregateArray = [inputByte];
+                    continue;
+                }
+            } else { // Not boundary char
+                if (aggregateArray[0] == SLIP_BOUNDARY_CHAR) {
+                    aggregateArray.push(inputByte);
+                    continue;
+                } else { // Not in a valid slip packet, discard pkt
+                    aggregateArray = [];
+                    continue;
+                }
+            }
+        }
+
+        return packets;
+    }
+
+    static unescapePackets(slipPackets) {
+        if (!slipPackets) {
+            return [];
+        }
+
+        const pkts = slipPackets.reduce((acc, packet) => {
+            acc.push(Slip.unescapeSlip(packet));
+            return acc;
+        }, []); // Initial reduce value
+        return pkts;  
+    }
+
+    // Callback (err, unescapedPacket)
+    static unescapeSlip(rawSlipPacket) {
+        if (!Array.isArray(rawSlipPacket)) {
+            throw new Error('Invalid input, must be array');
+        }
+
+        // Buffer for building unescaped packet
+        let unescapedPacket = [];
+
+        for (let i = 0; i < rawSlipPacket.length; i++) {
+            // Remove 0xC0 elements
+            if (rawSlipPacket[i] === 0xC0) {
+                continue;
+            }
+
+            // Check for special two-byte sequences
+            // Make sure there are at least two remaining elements in the packet
+            if ((i + 1) < rawSlipPacket.length) {
+                // replace DB DC with C0
+                if (rawSlipPacket[i] === 0xDB && rawSlipPacket[i+1] === 0xDC) {
+                    unescapedPacket.push(0xC0);
+                    // skip over next byte since we have checked it
+                    i += 1;
+                    continue;
+                }
+
+                // replace DB DD with DB
+                if (rawSlipPacket[i] === 0xDB && rawSlipPacket[i+1] === 0xDD) {
+                    unescapedPacket.push(0xDB);
+                    i += 1;
+                    continue;
+                }
+            }
+
+            // Passed all special case checks, add as regular element
+            unescapedPacket.push(rawSlipPacket[i]);
+        }
+
+        return unescapedPacket;
+    }
+}
+
+module.exports = Slip;
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+const ThreeWireParser = __webpack_require__(0);
+
+window.ThreeWireParser = ThreeWireParser;
+
 
 /***/ })
 /******/ ]);
